@@ -33,8 +33,26 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+       // Check the authenticated user's role
+    $user = $request->user();
+
+     switch ($user->role) {
+        case 'admin':
+            return redirect()->intended('/admin/dashboard');
+
+        case 'teacher':
+            return redirect()->intended('/teacher/dashboard');
+
+        case 'student':
+            return redirect()->intended('/student/dashboard');
+
+        default:
+            Auth::logout();
+            return redirect('/login')->withErrors([
+                'email' => 'Unauthorized role.',
+            ]);
     }
+}
 
     /**
      * Destroy an authenticated session.
@@ -46,6 +64,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/');
     }
 }
